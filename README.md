@@ -28,6 +28,8 @@ $ python boundary-attack-resnet.py
 
 This will create adversarial images using the Bad Joke Eel and Awkward Moment Seal images, for attacking the Keras ResNet-50 model (pretrained on ImageNet). You can also change the files to other images in the `images/original` folder or add your own images. All input images will be reshaped to 224 x 224 x3 arrays.
 
+The script will take ~10 minutes to create a decent adversarial image (similar to the second last image in the above series of images) on a 1080 Ti GPU.
+
 ## MNIST Demo
 
 <img src="https://raw.githubusercontent.com/greentfrapp/boundary-attack/master/demo/demo_screenshot.png" alt="Demo Screenshot" width="500px" height="whatever">
