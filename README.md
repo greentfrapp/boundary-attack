@@ -1,7 +1,11 @@
 # boundary-attack
 Implementation of the Boundary Attack algorithm as described in:
 
-Brendel, Wieland, Jonas Rauber, and Matthias Bethge. **"Decision-Based Adversarial Attacks: Reliable Attacks Against Black-Box Machine Learning Models."** *arXiv preprint arXiv:1712.04248 (2017).*
+[Brendel, Wieland, Jonas Rauber, and Matthias Bethge. **"Decision-Based Adversarial Attacks: Reliable Attacks Against Black-Box Machine Learning Models."** *arXiv preprint arXiv:1712.04248 (2017).*](https://arxiv.org/abs/1712.04248)
+
+The algorithm is also implemented in [Foolbox](https://github.com/bethgelab/foolbox) as part of a toolkit of adversarial techniques.
+
+## Grumpy Cat's secret identity is Doge
 
 <div>
 <img src="https://raw.githubusercontent.com/greentfrapp/boundary-attack/master/images/sample_4_label273_dingo/20180422_231253_dingo.png" alt="doge_1" width="100px" height="whatever" style="display: inline-block;">
@@ -12,7 +16,7 @@ Brendel, Wieland, Jonas Rauber, and Matthias Bethge. **"Decision-Based Adversari
 <img src="https://raw.githubusercontent.com/greentfrapp/boundary-attack/master/images/sample_4_label273_dingo/20180422_234213_dingo.png" alt="doge_6" width="100px" height="whatever" style="display: inline-block;">
 </div>
 
-*All of the above images are classified as `273: 'dingo, warrigal, warragal, Canis dingo'` by the Keras ResNet-50 model pretrained on ImageNet*
+*All of the above images are classified as `273: 'dingo, warrigal, warragal, Canis dingo'` by the Keras ResNet-50 model pretrained on ImageNet.*
 
 ## Instructions
 
