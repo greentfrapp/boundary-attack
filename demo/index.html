@@ -1,0 +1,258 @@
+<!doctype html>
+<html>
+<head>
+	<title>Boundary Attack Demo</title>
+	<link href="css/semantic.css" rel="stylesheet" type="text/css" />
+	<style type="text/css">
+		body {
+			font-family: sans-serif;
+		}
+		img {
+			height: 100%;
+			margin: auto;
+		}
+		#grid {
+			display: grid;
+			grid-gap: 100px;
+			grid-template-columns: 1fr 200px 350px 250px 1fr;
+			grid-template-rows: 1fr;
+			grid-template-areas:
+				". inputs main scores ."
+			;
+		}
+		#inputs {
+			grid-area: inputs;
+			display: grid;
+			grid-gap: 5px;
+			grid-template-columns: 1fr;
+			grid-template-rows: 60px 210px 60px 210px 1fr;
+			grid-template-areas:
+				"initial-input"
+				"initial-image"
+				"target-input"
+				"target-image"
+				"."
+			;
+		}
+		#main {
+			grid-area: main;
+			display: grid;
+			grid-gap: 10px;
+			grid-template-columns: 1fr;
+			grid-template-rows: 100px 350px 40px 60px 40px 60px 1fr;
+			grid-template-areas:
+				"button"
+				"adversarial-image"
+				"."
+				"."
+				"."
+				"."
+				"."
+			;
+		}
+		#scores {
+			grid-area: scores;
+			display: grid;
+			grid-gap: 10px;
+			grid-template-columns: 1fr;
+			grid-template-rows: 25px 45px 60px 50px 60px 40px 60px 40px 60px 1fr;
+			grid-template-areas:
+				"blank"
+				"scores-header"
+				"."
+				"."
+				"."
+				"steps-header"
+				"steps"
+				"mse-header"
+				"mse"
+				"."
+			;
+		}
+		#start {
+			font-size: 25px;
+			grid-area: button;
+			display: flex;
+		}
+		#start button {
+			margin: auto;
+		}
+		#initial-image {
+			grid-area: initial-image;
+			display: flex;
+		}
+		#adversarial-image {
+			grid-area: adversarial-image;
+		}
+		#target-image {
+			grid-area: target-image;
+			display: flex;
+		}
+		#initial-input{
+			grid-area: initial-input;
+			display: flex;
+		}
+		#initial-input div.input {
+			margin: auto;
+		}
+		#target-input{
+			grid-area: target-input;
+			display: flex;
+		}
+		#target-input div.input {
+			margin: auto;
+		}
+		#description {
+		}
+		#stats {
+			grid-area: stats;
+		}
+		#predictions {
+			grid-area: predictions;
+		}
+		#predictions div {
+			padding: 2px;
+		}
+		#predictions .label {
+			display: inline-block;
+		}
+		.bar-container {
+			display: inline-block;
+			background-color: #ecf0f1;
+			width: 120px;
+			margin: auto;
+			margin-bottom: -5px;
+			padding: 0px;
+		}
+		.bar-body {
+			background-color: #0CBC3D;
+		}
+		#steps-header {
+			grid-area: steps-header;
+		}
+		#steps {
+			grid-area: steps;
+		}
+		#steps h1 {
+			font-size: 60px;
+			margin-top: -10px;
+		}
+		#mse-header {
+			grid-area: mse-header;
+		}
+		#mse {
+			grid-area: mse;
+		}
+		#mse h1 {
+			font-size: 60px;
+			margin-top: -10px;
+		}
+		.blank {
+			grid-area: blank;
+		}
+		#scores-header {
+			grid-area: scores-header;
+		}
+	</style>
+	
+<script src="http://code.jquery.com/jquery-1.10.2.min.js"></script>
+<script src="javascript/semantic.js" type="text/javascript"></script>
+<script src="./dist/build.js"></script>
+</head>
+
+<body>
+
+<div class="ui large message" id="description" >
+	<b>Demo for Boundary Attack implementation.</b>
+</div>
+
+<div id='interface'>
+	<component :is="view" ></component>
+</div>
+
+<template id="template">
+<div id="grid">
+	<div class="ui active inverted dimmer" v-if="loading">
+		<div class="ui massive indeterminate text loader">
+			Retrieving MNIST images...
+		</div>
+	</div>
+	<div id="inputs">
+		<div id="initial-input">
+			<div class="ui labeled input">
+				<div class="ui label">
+					Initial
+				</div>
+				<input type="text" v-model="initialLabel" @keyup.enter="init">
+			</div>
+		</div>
+		<div id="target-input">
+			<div class="ui labeled input">
+				<div class="ui label">
+					Target
+				</div>
+				<input type="text" v-model="targetLabel" @keyup.enter="init">
+			</div>
+		</div>
+		<div id="initial-image">
+			<img v-bind:src="initialImage" />
+		</div>
+		<div id="target-image">
+			<img v-bind:src="targetImage" />
+		</div>
+	</div>
+	<div id="main">
+		<div id="start">
+			<button class="ui massive button" v-bind:class="{red: !this.running, green: this.running}" @click="start()">
+				<span v-if="!this.running">Attack!</span>
+				<span v-if="this.running">Attacking...</span>
+			</button>
+		</div>
+		<div id="adversarial-image">
+			<img v-bind:src="adversarialImage" />
+		</div>
+	</div>
+	<div id="scores">
+		<div class="blank">
+		</div>
+		<div id="scores-header">
+			<h1>TOP PREDICTIONS</h1>
+		</div>
+		<div>
+			<div class="ui">
+				<h1>{{ scores[0][1] }}</h1>
+			</div>
+			<div class="bar-container">
+				<div class="bar-body" style="height:16px;" v-bind:style="{ width: scores[0][0] * 100 + '%' }">
+				</div>
+			</div>
+		</div>
+		<div v-for="(score, idx) in scores" v-if="idx > 0">
+			<div class="ui">
+				<h3>{{ score[1] }}</h3>
+			</div>
+			<div class="bar-container">
+				<div class="bar-body" style="height:16px;" v-bind:style="{ width: score[0] * 100 + '%' }">
+				</div>
+			</div>
+		</div>
+		<div id="steps-header" class="ui">
+			<h1>STEPS</h1>
+		</div>
+		<div id="steps" class="ui">
+			<h1>{{ steps }}</h1>
+		</div>
+		<div id="mse-header" class="ui">
+			<h1>MSE</h1>
+		</div>
+		<div id="mse"  class="ui">
+			<h1>{{ roundOff(meanSquaredError) }}</h1>
+		</div>
+	</div>
+</div>
+</template>
+
+
+</body>
+
+</html>

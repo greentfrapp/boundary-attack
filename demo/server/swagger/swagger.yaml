@@ -1,0 +1,107 @@
+---
+swagger: "2.0"
+info:
+  description: "Boundary Attack API"
+  version: "0.1"
+  title: "Boundary Attack API"
+  contact:
+    email: "limsweekiat@gmail.com"
+host: "localhost:8080"
+basePath: "/v0.1"
+tags:
+- name: "boundaryattack"
+  description: "Endpoints for Boundary Attack demo"
+schemes:
+- "http"
+paths:
+  /init:
+    post:
+      tags:
+      - "boundaryattack"
+      summary: "Initializes a demo"
+      description: "Initializes a demo"
+      operationId: "init"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "initLabels"
+        description: "Initialization labels"
+        required: true
+        schema:
+          $ref: "#/definitions/initLabels"
+      responses:
+        200:
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/initResponse"
+      x-swagger-router-controller: "server.controllers.boundaryattack_controller"
+  /step:
+    get:
+      tags:
+      - "boundaryattack"
+      summary: "Takes a step in the attack"
+      description: "Takes a step in the attack"
+      operationId: "step"
+      produces:
+      - "application/json"
+      parameters: []
+      responses:
+        200:
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/stepResponse"
+      x-swagger-router-controller: "server.controllers.boundaryattack_controller"
+definitions:
+  initResponse:
+    type: "object"
+    properties:
+      initialImage:
+        type: "string"
+      finalImage:
+        type: "string"
+      scores:
+        type: "array"
+        items:
+          type: "number"
+      mse:
+        type: "number"
+      step:
+        type: "number"
+    example:
+      finalImage: "finalImage"
+      scores:
+      - 0.80082819046101150206595775671303272247314453125
+      - 0.80082819046101150206595775671303272247314453125
+      initialImage: "initialImage"
+      step: 1.46581298050294517310021547018550336360931396484375
+      mse: 6.02745618307040320615897144307382404804229736328125
+  stepResponse:
+    type: "object"
+    properties:
+      sample:
+        type: "string"
+      scores:
+        type: "array"
+        items:
+          type: "number"
+      mse:
+        type: "number"
+      step:
+        type: "number"
+    example:
+      scores:
+      - 0.80082819046101150206595775671303272247314453125
+      - 0.80082819046101150206595775671303272247314453125
+      step: 1.46581298050294517310021547018550336360931396484375
+      sample: "sample"
+      mse: 6.02745618307040320615897144307382404804229736328125
+  initLabels:
+    type: "object"
+    properties:
+      initial:
+        type: "number"
+      target:
+        type: "number"
