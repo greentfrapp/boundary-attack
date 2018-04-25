@@ -24,7 +24,7 @@ $ python boundary-attack-resnet.py
 
 This will create adversarial images using the Bad Joke Eel and Awkward Moment Seal images, for attacking the Keras ResNet-50 model (pretrained on ImageNet). You can also change the files to other images in the `images/original` folder or add your own images. All input images will be reshaped to 224 x 224 x3 arrays.
 
-##MNIST Demo
+## MNIST Demo
 
 There is also a GUI demo (uses Python3) for MNIST images, using a local convolutional model that follows the architecture described [here](https://www.tensorflow.org/tutorials/layers#building_the_cnn_mnist_classifier), which achieved 98% accuracy on the MNIST test set.
 
