@@ -50,3 +50,5 @@ Wait for the following message to appear:
 ```
 
 Then enter the labels for the attack and target and hit Enter. Wait for the MNIST images to load then click on the Attack! button.
+
+This is much faster than the above script and will take far less than a minute to generate an adequate adversarial image on a Macbook Pro.
