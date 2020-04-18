@@ -8,6 +8,7 @@ from server import util
 
 import numpy as np
 import os
+import tensorflow.compat.v1 as tf
 
 from server.controllers.MNISTClassifier import MNISTClassifier
 import server.controllers.util as ba
@@ -49,7 +50,9 @@ def init(initLabels):  # noqa: E501
 	_final_image_loc = ba.draw(np.copy(_target_sample), "target")
 	output.initial_image = _initial_image_loc
 	output.final_image = _final_image_loc
-	scores = _classifier.get_confidence(_initial_sample.reshape(1, 28, 28, 1)).astype(float).tolist()[0]
+	with _sess.as_default():
+		with _sess.graph.as_default():
+			scores = _classifier.get_confidence(_initial_sample.reshape(1, 28, 28, 1)).astype(float).tolist()[0]
 	scores = list(zip(scores, range(10)))
 	scores.sort(reverse=True)
 	output.scores = scores[:3]
@@ -70,63 +73,68 @@ def step():  # noqa: E501
 
 	global _attack_class, _target_class, _delta, _epsilon, _adversarial_sample, _n_steps, _prev_sample_loc, _score
 
-	if _n_steps == 0:
-		_epsilon = np.linalg.norm((_adversarial_sample - _target_sample).astype(np.float32))
-		while True:
-			trial_sample = _adversarial_sample + ba.forward_perturbation(_epsilon * np.linalg.norm(_adversarial_sample - _target_sample), _adversarial_sample, _target_sample)
-			prediction = _classifier.predict(trial_sample.reshape(1, 28, 28, 1))
-			if prediction == _attack_class:
-				_adversarial_sample = trial_sample
-				break
+	with _sess.as_default():
+		with _sess.graph.as_default():
+			if _n_steps == 0:
+				_epsilon = np.linalg.norm((_adversarial_sample - _target_sample).astype(np.float32))
+				while True:
+					trial_sample = _adversarial_sample + ba.forward_perturbation(_epsilon * np.linalg.norm(_adversarial_sample - _target_sample), _adversarial_sample, _target_sample)
+					prediction = _classifier.predict(trial_sample.reshape(1, 28, 28, 1))
+					if prediction == _attack_class:
+						_adversarial_sample = trial_sample
+						break
+					else:
+						_epsilon *= 0.9
 			else:
-				_epsilon *= 0.9
-	else:
-		while True:
-			trial_samples = []
-			for i in np.arange(10):
-				trial_sample = _adversarial_sample + ba.orthogonal_perturbation(_delta, _adversarial_sample, _target_sample)
-				trial_samples.append(trial_sample)
-			predictions = _classifier.predict(np.array(trial_samples).reshape(-1, 28, 28, 1))
-			d_score = np.mean(predictions == _attack_class)
-			if d_score > 0.0:
-				if d_score < 0.3:
-					_delta *= 0.9
-				elif d_score > 0.6:
-					_delta /= 0.9
-				_adversarial_sample = np.array(trial_samples)[np.where(predictions == _attack_class)[0][0]]
-				break
-			else:
-				_delta *= 0.9
-		_epsilon = np.linalg.norm((_adversarial_sample - _target_sample).astype(np.float32))
-		while True:
-			trial_sample = _adversarial_sample + ba.forward_perturbation(_epsilon, _adversarial_sample, _target_sample)
-			prediction = _classifier.predict(trial_sample.reshape(1, 28, 28, 1))
-			if prediction == _attack_class:
-				_adversarial_sample = trial_sample
-				break
-			else:
-				_epsilon *= 0.9
+				while True:
+					trial_samples = []
+					for i in np.arange(10):
+						trial_sample = _adversarial_sample + ba.orthogonal_perturbation(_delta, _adversarial_sample, _target_sample)
+						trial_samples.append(trial_sample)
+					predictions = _classifier.predict(np.array(trial_samples).reshape(-1, 28, 28, 1))
+					d_score = np.mean(predictions == _attack_class)
+					if d_score > 0.0:
+						if d_score < 0.3:
+							_delta *= 0.9
+						elif d_score > 0.6:
+							_delta /= 0.9
+						_adversarial_sample = np.array(trial_samples)[np.where(predictions == _attack_class)[0][0]]
+						break
+					else:
+						_delta *= 0.9
+				_epsilon = np.linalg.norm((_adversarial_sample - _target_sample).astype(np.float32))
+				while True:
+					trial_sample = _adversarial_sample + ba.forward_perturbation(_epsilon, _adversarial_sample, _target_sample)
+					prediction = _classifier.predict(trial_sample.reshape(1, 28, 28, 1))
+					if prediction == _attack_class:
+						_adversarial_sample = trial_sample
+						break
+					else:
+						_epsilon *= 0.9
 
-	_n_steps += 1
-	output = StepResponse()
-	sample_loc = ba.draw(np.copy(_adversarial_sample), "adversarial", _n_steps)
-	output.sample = sample_loc
-	scores = _classifier.get_confidence(np.array(_adversarial_sample).reshape(1, 28, 28, 1)).astype(float).tolist()[0]
-	scores = list(zip(scores, range(10)))
-	scores.sort(reverse=True)
-	output.scores = scores[:3]
-	output.mse = float(ba.get_normal_mse(np.copy(_adversarial_sample), np.copy(_target_sample)))
-	output.step = _n_steps
+			_n_steps += 1
+			output = StepResponse()
+			sample_loc = ba.draw(np.copy(_adversarial_sample), "adversarial", _n_steps)
+			output.sample = sample_loc
+			scores = _classifier.get_confidence(np.array(_adversarial_sample).reshape(1, 28, 28, 1)).astype(float).tolist()[0]
+			scores = list(zip(scores, range(10)))
+			scores.sort(reverse=True)
+			output.scores = scores[:3]
+			output.mse = float(ba.get_normal_mse(np.copy(_adversarial_sample), np.copy(_target_sample)))
+			output.step = _n_steps
 
-	if _prev_sample_loc is not None:
-		os.system("rm {}".format(_prev_sample_loc))
-	_prev_sample_loc = sample_loc
-	print(_delta)
+			if _prev_sample_loc is not None:
+				os.system("rm {}".format(_prev_sample_loc))
+			_prev_sample_loc = sample_loc
+			print(_delta)
 
 	return output
 
+_sess = tf.Session()
 _classifier = MNISTClassifier()
-_classifier.load()
+with _sess.as_default():
+	with _sess.graph.as_default():
+		_classifier.load()
 _prev_sample_loc = None
 _initial_image_loc = None
 _final_image_loc = None
