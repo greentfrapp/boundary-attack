@@ -30,6 +30,16 @@ This will create adversarial images using the Bad Joke Eel and Awkward Moment Se
 
 The script will take ~10 minutes to create a decent adversarial image (similar to the second last image in the above series of images) on a 1080 Ti GPU.
 
+## Primer to "Orthogonal Perturbation" / "Projecting onto Sphere"
+
+Here is a brief explanation about the orthogonal perturbation step and why we 
+
+> draw a new random direction by drawing from an iid Gaussian and projecting on a sphere
+
+*(See Figure 2 in Wieland et al.)*
+
+![](https://raw.githubusercontent.com/greentfrapp/boundary-attack/master/images/boundary_explanation.jpg)
+
 ## MNIST Demo
 
 <img src="https://raw.githubusercontent.com/greentfrapp/boundary-attack/master/demo/demo_screenshot.png" alt="Demo Screenshot" width="500px" height="whatever">
